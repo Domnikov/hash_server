@@ -77,6 +77,8 @@ To start tests need to execute command from project directory:
 Currently it testing hash functions.
 
 ## TODO
+[ ] Raw pointer and dinamic allocated objects life cicle
+
 [ ] Read port number from command line 
 
 [ ] Made app as service
