@@ -9,7 +9,7 @@ Because tast didn't allow to used extra memory it doesn't store read data to que
 
 Attention: server check only linux new line format: \n. Windows new line format will include \r into hash and will not match to linux.
 
-## installation
+## Installation
 
 For hash_server compilation it reqire gcc >= 7.0, openssl and epoll support in linux kernel.
 Until docker is not ready in project dir:
@@ -18,6 +18,7 @@ mkdir build
 cd build
 cmake ..
 make
+make install
 ```
 As result hash_server elf file must appear in build directory.
 
@@ -56,8 +57,14 @@ Currently it testing hash functions.
 
 ## TODO
 [ ] Made app as service
+
 [ ] Add docker files
+
 [ ] Remake with using STL coroutines (require gcc >= 10.0)
+
 [ ] Improve speed with over 10k connections
+
 [ ] Complete GPROF analysis
+
 [ ] Other modules unit tests
+
