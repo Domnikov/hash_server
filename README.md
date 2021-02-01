@@ -24,19 +24,24 @@ make install
 ```
 As result hash_server elf file must appear in build directory.
 
+for manual compilation:
+```
+g++ -lpthread -lcrypto -O2 -std=c++17 ./main.cpp ./hash_server.cpp
+```
+
 ## Using
 For using hash_server need to start server and it will calculate hash for any data sent to its port.
 
 ## Test tools:
 For developing and testing was used folowing test tools:
 
-gcc -fsanitize=address
+g++ ... -fsanitize=address
 
-gcc -fsanitize=thread
+g++ ... -fsanitize=thread
 
-gcc -fsanitize=undefined
+g++ ... -fsanitize=undefined
 
-gcc -pg
+g++ ... -pg
 
 valgrind
 
