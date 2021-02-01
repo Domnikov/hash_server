@@ -60,9 +60,11 @@ To start tests need to execute command from project directory:
 Currently it testing hash functions.
 
 ## TODO
-[ ] Read port number from command line
+[ ] Read port number from command line 
 
 [ ] Made app as service
+
+[ ] Other modules unit tests
 
 [ ] Add docker files
 
@@ -71,8 +73,6 @@ Currently it testing hash functions.
 [ ] Improve speed with over 10k connections
 
 [ ] Complete GPROF analysis
-
-[ ] Other modules unit tests
 
 [ ] Too many comments in code made it difficult to read. Need to refactor code and remove extra comments
 
