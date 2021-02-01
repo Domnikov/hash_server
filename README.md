@@ -27,6 +27,13 @@ As result hash_server elf file must appear in build directory.
 ## Using
 For using hash_server need to start server and it will calculate hash for any data sent to its port.
 
+## Test tools:
+For developing and testing was used folowing test tools:
+gcc -fsanitize=address
+gcc -fsanitize=thread
+gcc -fsanitize=undefined
+gcc -pg
+valgrind
 
 ## Manual test
 
