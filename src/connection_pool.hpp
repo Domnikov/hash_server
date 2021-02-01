@@ -244,8 +244,7 @@ protected:
             }
         }
         // Write data to socket
-        write(fd, buf, len);
-        return true;
+        return (-1 != write(fd, buf, len));
     }
 
     /** thread data. socket file descriptor and thread object*/
