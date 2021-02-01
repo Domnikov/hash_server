@@ -18,6 +18,6 @@ int main()
     /* Reset system signalling and set it to sighandler function */
     prev_handler = signal (SIGINT, sighandler);
 
-    auto thread_num = std::max(2u, 4*std::thread::hardware_concurrency());
+    auto thread_num = std::max(2u, 2*std::thread::hardware_concurrency());
     return hash_server_t::run("5555", thread_num, false);
 }
