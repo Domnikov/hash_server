@@ -1,6 +1,6 @@
 # hash_server
 
-## introductions
+## Introduction
 
 This is test project to implement TCP server on plain linux which receive any data and as return it sent back one by one each line hash. 
 For calculating hash it using openssl and epoll for managing connection. Server creates thread pool 2xCPU. 
@@ -8,6 +8,8 @@ For calculating hash it using openssl and epoll for managing connection. Server 
 Because tast didn't allow to used extra memory it doesn't store read data to queue which is more effective way to parallel hash calculation but in that case is requre much more memory.
 
 Attention: server check only linux new line format: \n. Windows new line format will include \r into hash and will not match to linux.
+
+Default TCP port 5555
 
 ## Installation
 
@@ -22,7 +24,11 @@ make install
 ```
 As result hash_server elf file must appear in build directory.
 
-## Tests manual
+## Using
+For using hash_server need to start server and it will calculate hash for any data sent to its port.
+
+
+## Manual test
 
 After building server can be tested with using any tcp clients for example netcat:
 ```
@@ -34,8 +40,6 @@ or send file:
 ```
 cat ./file_name | nc 127.0.0.1 5555 -q1
 ```
-
-
 
 ## Autotests
 
@@ -56,6 +60,8 @@ To start tests need to execute command from project directory:
 Currently it testing hash functions.
 
 ## TODO
+[ ] Read port number from command line
+
 [ ] Made app as service
 
 [ ] Add docker files
