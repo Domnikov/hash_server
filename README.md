@@ -83,6 +83,8 @@ Currently it testing hash functions.
 
 [ ] Other modules unit tests
 
+[ ] Check all error printing messages if it really has errno
+
 [ ] Add docker files
 
 [ ] Remake with using STL coroutines (require gcc >= 10.0)
