@@ -74,3 +74,5 @@ Currently it testing hash functions.
 
 [ ] Other modules unit tests
 
+[ ] Too many comments in code made it difficult to read. Need to refactor code and remove extra comments
+
