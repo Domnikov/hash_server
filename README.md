@@ -29,10 +29,15 @@ For using hash_server need to start server and it will calculate hash for any da
 
 ## Test tools:
 For developing and testing was used folowing test tools:
+
 gcc -fsanitize=address
+
 gcc -fsanitize=thread
+
 gcc -fsanitize=undefined
+
 gcc -pg
+
 valgrind
 
 ## Manual test
