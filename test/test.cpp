@@ -8,19 +8,8 @@
 class hash_calc_test : public ::testing::Test 
 {
     public:
-        void SetUp   () {
-            if(system("echo 1111111 >  test_one" )) {fprintf(stderr, "Test file cannot be created in current folder");return;}
-
-            if(system("echo 1111111 >> test_four")) {fprintf(stderr, "Test file cannot be created in current folder");return;}
-            if(system("echo 1111111 >> test_four")) {fprintf(stderr, "Test file cannot be created in current folder");return;}
-            if(system("echo 1111111 >> test_four")) {fprintf(stderr, "Test file cannot be created in current folder");return;}
-            if(system("echo 1111111 >> test_four")) {fprintf(stderr, "Test file cannot be created in current folder");return;}
-        }
-        void TearDown() 
-        {
-            system("rm test_one");
-            system("rm test_four");
-        }
+        void SetUp   () {}
+        void TearDown() {}
 
     protected:
 };
