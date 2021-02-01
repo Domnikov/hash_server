@@ -3,7 +3,7 @@
 ## introductions
 
 This is test project to implement TCP server on plain linux which receive any data and as return it sent back one by one each line hash. 
-For calculating hash it using openssl and epoll for managing connection. Server creates thread pool 2xCPU.
+For calculating hash it using openssl and epoll for managing connection. Server creates thread pool 2xCPU. Because tast didn't allow to used extra memory it doesn't store read data to queue which is more effective way to parallel hash calculation but in that case is requre much more memory.
 
 ## installation
 
@@ -45,7 +45,7 @@ make
 To start tests need to execute command from project directory:
 
 ```
-./build/test/hash_server_test
+./test/hash_server_test
 ```
 
 Currently it testing hash functions.
@@ -56,3 +56,4 @@ Currently it testing hash functions.
 [ ] Remake with using STL coroutines (require gcc >= 10.0)
 [ ] Improve speed with over 10k connections
 [ ] Complete GPROF analysis
+[ ] Other modules unit tests
