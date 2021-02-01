@@ -12,7 +12,7 @@ set(PROJ_NAME hash_server)
 
 add_executable (${PROJ_NAME} ${SOURCE_EXE})
 
-add_compile_options(-std=c++17 -Wall -Werror)
+add_compile_options(-std=c++17 -O2 -Wall -Werror)
 
 if(NOT CMAKE_CXX_EXTENSIONS)
     set(CMAKE_CXX_EXTENSIONS OFF)
