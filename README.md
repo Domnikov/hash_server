@@ -3,7 +3,11 @@
 ## introductions
 
 This is test project to implement TCP server on plain linux which receive any data and as return it sent back one by one each line hash. 
-For calculating hash it using openssl and epoll for managing connection. Server creates thread pool 2xCPU. Because tast didn't allow to used extra memory it doesn't store read data to queue which is more effective way to parallel hash calculation but in that case is requre much more memory.
+For calculating hash it using openssl and epoll for managing connection. Server creates thread pool 2xCPU. 
+
+Because tast didn't allow to used extra memory it doesn't store read data to queue which is more effective way to parallel hash calculation but in that case is requre much more memory.
+
+Attention: server check only linux new line format: \n. Windows new line format will include \r into hash and will not match to linux.
 
 ## installation
 
