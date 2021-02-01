@@ -85,6 +85,8 @@ Currently it testing hash functions.
 
 [ ] Check all error printing messages if it really has errno
 
+[ ] Make code in C++ way (raw pointers, C function)
+
 [ ] Add docker files
 
 [ ] Remake with using STL coroutines (require gcc >= 10.0)
