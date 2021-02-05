@@ -6,7 +6,10 @@
  */
 #pragma once
 
+#include <memory>
+
 #include <openssl/evp.h>
+
 
 /**
 * @brief hash_t class
@@ -23,16 +26,13 @@ public:
     * @brief hast_t constructor
     * @param[in] Connection file descriptor
     */
-    hash_t(int fd):m_fd(fd), m_hash(nullptr){}
+    hash_t(int fd):m_fd(fd), m_hash(nullptr, &EVP_MD_CTX_free){}
 
 
     /**
     * @brief hast_t destructor
     */
-    virtual ~hash_t()
-    {
-        clean();
-    }
+    virtual ~hash_t() = default;
 
 
     /**
@@ -47,7 +47,7 @@ public:
         {
             init();
         }
-        EVP_DigestUpdate(m_hash, buf, len);
+        EVP_DigestUpdate(m_hash.get(), buf, len);
     }
 
 
@@ -66,8 +66,8 @@ public:
 
         unsigned int hash_len;
         char hash_str[EVP_MAX_MD_SIZE];
-        EVP_DigestFinal_ex(m_hash, (unsigned char*)hash_str, &hash_len);
-        clean();
+        EVP_DigestFinal_ex(m_hash.get(), (unsigned char*)hash_str, &hash_len);
+        m_hash.reset();
 
         const char hex[] = {"0123456789ABCDEF"};
         for(unsigned int i = 0; i < hash_len; i++)
@@ -92,34 +92,22 @@ private:
     */
     void init()
     {
-        clean();
+        m_hash.reset(EVP_MD_CTX_create());
 
-        m_hash = EVP_MD_CTX_create();
         if(!m_hash)
         {
             perror("Error: hash cannot be initialized");
         }
         else
         {
-            EVP_DigestInit_ex(m_hash, EVP_md5(), NULL);
+            EVP_DigestInit_ex(m_hash.get(), EVP_md5(), NULL);
         }
     }
 
-    /**
-    * @brief clean old EVP_MD_CTX
-    */
-    void clean()
-    {
-        if(m_hash)
-        {
-            EVP_MD_CTX_destroy(m_hash);
-            m_hash = nullptr;
-        }
-    }
 
     /** Saved file descriptor. Used for thread pool*/
     int m_fd;
 
     /** hash object*/
-    EVP_MD_CTX* m_hash;
+    std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> m_hash;
 };
