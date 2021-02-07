@@ -172,6 +172,8 @@ protected:
             close(hash->get_fd());
             delete hash;
             event->data.ptr = nullptr;
+
+            return false;
         }
 
         // New data available
