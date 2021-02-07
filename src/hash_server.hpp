@@ -144,12 +144,12 @@ public:
         while (m_conct.wait_new(new_fd))
         {
             // create event for accepted connection
-            auto event = new epoll_event;
-            event->data.ptr = new hash_t(new_fd);
-            event->events = EPOLLIN | EPOLLET;
+            epoll_event event;
+            event.data.ptr = new hash_t(new_fd);
+            event.events = EPOLLIN | EPOLLET;
 
             // push connection event to thread pool
-            if (-1 == m_pool.push(new_fd, event))
+            if (-1 == m_pool.push(new_fd, &event))
             {
                 perror("[E] epoll_ctl failed\n");
             }
