@@ -18,7 +18,6 @@
 #include <cstring>
 
 
-
 /**
 * @brief connection_pool_t class
 * @details Multi function class (sorry OOP). Contains vector of threads. Each thread hash epoll event loop.
@@ -95,6 +94,15 @@ public:
     * @details If epoll_wait will be changed to infinite timeout then despructor must be changed as well
     */
     virtual ~connection_pool_t()
+    {
+        if (m_run)
+        {
+            stop();
+        }
+    }
+
+
+    void stop()
     {
         // Finishing threads
         m_run = false;

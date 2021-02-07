@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(hash_server LANGUAGES CXX)
 
-set(SOURCE_EXE src/main.cpp src/hash_server.cpp)
+set(SOURCE_EXE src/main.cpp)
 set(PROJ_NAME hash_server)
 
 add_executable (${PROJ_NAME} ${SOURCE_EXE})
