@@ -5,7 +5,7 @@
 #include <cstdio>
 
 void (*system_handler)(int);
-server_t<tcp_soct_t>* server_ptr = nullptr;
+hash_server_t* server_ptr = nullptr;
 
 void sighandler(int sig)
 {
@@ -48,9 +48,10 @@ int main(int argc, char **argv)
     // Start server
     try
     {
-        server_t<tcp_soct_t> server(thread_num);
+        hash_server_t server(thread_num);
         server_ptr = &server;
         server.run(port);
+        server_ptr = nullptr;
     }
     catch(std::runtime_error& err)
     {

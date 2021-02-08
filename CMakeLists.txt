@@ -9,14 +9,13 @@ project(hash_server LANGUAGES CXX)
 
 set(SOURCE_EXE src/main.cpp)
 set(PROJ_NAME hash_server)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+add_compile_options(-O2 -Wall -Werror)
 
 add_executable (${PROJ_NAME} ${SOURCE_EXE})
-
-add_compile_options(-std=c++17 -O2 -Wall -Werror)
-
-if(NOT CMAKE_CXX_EXTENSIONS)
-    set(CMAKE_CXX_EXTENSIONS OFF)
-endif()
 
 option(COMPILE_TESTS "Compile the tests" OFF)
 

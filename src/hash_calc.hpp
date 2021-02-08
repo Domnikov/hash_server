@@ -1,12 +1,13 @@
 /**
  * @file hash_calc.h
  * @author Domnikov Ivan
- * @brief Wrapper over openssl EVP hash
+ * @brief Wrapper over openssl EVP hash to provide C++ style interface
  *
  */
 #pragma once
 
 #include <memory>
+#include <string_view>
 
 #include <openssl/evp.h>
 
@@ -19,76 +20,58 @@
 class hash_t
 {
 public:
-    /** Length of result hash string*/
-    constexpr static size_t HAST_STR_LEN = 33;
-
-    /**
-    * @brief hast_t constructor
-    * @param[in] Connection file descriptor
-    */
-    hash_t(int fd):m_fd(fd), m_hash(nullptr, &EVP_MD_CTX_free){}
-
-
-    /**
-    * @brief hast_t destructor
-    */
+    hash_t():m_hash(nullptr, &EVP_MD_CTX_free){}
     virtual ~hash_t() = default;
 
 
     /**
-    * @brief Function to add new data to hash function
-    * @details When function call first time or after get_hex_str it will initialise new EVP_MD_CTX object
+    * @brief Function to process new data to hash function and return
+    * @details Buffer must be valid at least untill the end of this function.
     * @param[in] buffer with new data
-    * @param[in] new data length
     */
-    void calc_hash(const char* buf, int len)
+    void process(std::string_view buffer)
     {
+        if (!buffer.size())
+        {
+            return;
+        }
+
         if (!m_hash)
         {
             init();
         }
-        EVP_DigestUpdate(m_hash.get(), buf, len);
+
+        EVP_DigestUpdate(m_hash.get(), buffer.data(), buffer.size());
     }
 
 
     /**
-    * @brief Function to finalize hash calculation, clean EVP_MD_CTX object and store hash as hex string
-    * @param[out] buffer for record hex. Must be at least HAST_STR_LEN length
-    * @return false if failed, true if success
+    * @brief Function to get calculated hash
+    * @details Function to finalize hash calculation, clean EVP_MD_CTX object and store hash as hex string
+    * @details string_view will be invalid after deleting abject or relculated another hash.
+    * @return Calculated hash as string_view
     */
-    bool get_hex_str(char* dst)
+    std::string_view get_result()
     {
-        if (!m_hash)
-        {
-            perror("Attempt to read empty hash");
-            return false;
-        }
-
         unsigned int hash_len;
         char hash_str[EVP_MAX_MD_SIZE];
         EVP_DigestFinal_ex(m_hash.get(), (unsigned char*)hash_str, &hash_len);
         m_hash.reset();
 
         const char hex[] = {"0123456789ABCDEF"};
+        char* dst = out_buf;
         for(unsigned int i = 0; i < hash_len; i++)
         {
             *dst++ = hex[0XF & hash_str[i] >>  4];
             *dst++ = hex[0XF & hash_str[i]      ];
         }
         *dst = '\n';
-        return true;
+        return {out_buf, HAST_STR_LEN};
     }
-
-
-    /**
-    * @brief Get connection file descriptor
-    * @return Connection file descriptor
-    */
-    int get_fd(){return m_fd;}
 
 private:
     /**
-    * @brief clean old EVP_MD_CTX and initialize new
+    * @brief Clean old EVP_MD_CTX and initialize new
     */
     void init()
     {
@@ -105,9 +88,12 @@ private:
     }
 
 
-    /** Saved file descriptor. Used for thread pool*/
-    int m_fd;
-
     /** hash object*/
     std::unique_ptr<EVP_MD_CTX, decltype(&EVP_MD_CTX_free)> m_hash;
+
+    /** Length of result hash string*/
+    const static size_t HAST_STR_LEN = 33;
+
+    /** Output buffer for storing hash*/
+    char out_buf[HAST_STR_LEN];
 };
