@@ -76,18 +76,19 @@ To start tests need to execute command from project directory:
 
 Currently it testing hash functions.
 
-## TODO
-[ ] Raw pointer and dinamic allocated objects life cicle
 
-[ ] Read port number from command line 
+## TODO
+[*] Raw pointer and dinamic allocated objects life cicle
+
+[*] Read port number from command line 
 
 [ ] Made app as service
 
-[ ] Other modules unit tests
+[*] Other modules unit tests
 
-[ ] Check all error printing messages if it really has errno
+[*] Check all error printing messages if it really has errno
 
-[ ] Make code in C++ way (raw pointers, C function)
+[*] Make code in C++ way (raw pointers, C function)
 
 [ ] Add docker files
 
@@ -97,5 +98,5 @@ Currently it testing hash functions.
 
 [ ] Complete GPROF analysis
 
-[ ] Too many comments in code made it difficult to read. Need to refactor code and remove extra comments
+[*] Too many comments in code made it difficult to read. Need to refactor code and remove extra comments
 
