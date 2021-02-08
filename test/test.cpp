@@ -1,10 +1,10 @@
 #include "../src/connection_pool.hpp"
 #include "../src/hash_calc.hpp"
 #include "../src/event_manager.hpp"
+#include "../src/hash_server.hpp"
 
 #include <gtest/gtest.h>
 #include <fcntl.h>
-
 
 class hash_calc_test : public ::testing::Test 
 {
@@ -13,9 +13,6 @@ class hash_calc_test : public ::testing::Test
         void TearDown() {}
 
     protected:
-        std::string test_str = "1111111";
-        std::string etalon   = "7FA8282AD93047A4D6FE6111C93B308A\n";
-
         class test_event_manager_t: public event_manager_t<hash_t, false>
         {
             public:
@@ -25,8 +22,39 @@ class hash_calc_test : public ::testing::Test
                 bool test_write_data (std::string_view buffer){return write_data (buffer);}
         };
 
+
+        class fake_socket_t
+        {
+        public:
+            void kill(){}
+            void create(uint16_t ){server_counter = 0;}
+            bool wait_new(int& fd)
+            {
+                usleep(100);
+                close(pipefd[0]);close(pipefd[1]);
+                if (-1 == pipe(pipefd))
+                {
+                    fprintf(stderr, "Pipe creation Error");
+                }
+                fd = pipefd[1];
+                return ++server_counter < max_counter;
+            }
+
+            ~fake_socket_t(){close(pipefd[0]);close(pipefd[1]);}
+
+        private:
+            int pipefd[2];
+        };
+
+        std::string test_str = "1111111";
+        std::string etalon   = "7FA8282AD93047A4D6FE6111C93B308A\n";
+
+        constexpr static int max_counter = 10;
+        static int server_counter;
+
 };
 
+int hash_calc_test::server_counter = 0;
 
 
 
@@ -145,5 +173,16 @@ TEST_F(hash_calc_test, connection_pool_test)
     auto fail_result = pool.add_connection(10);
 
     ASSERT_EQ(fail_result, 0) << "Add new connection to connection_pool failed";
+}
+
+
+TEST_F(hash_calc_test, server_test)
+{
+    server_t<fake_socket_t, hash_ev_manager_t> server(1);
+
+    ASSERT_EQ(0, 0) << "Server Created";
+
+    server.run(5555);
+    ASSERT_EQ(server_counter, max_counter) << "Server Created";
 }
 
