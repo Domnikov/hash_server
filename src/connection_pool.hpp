@@ -72,7 +72,7 @@ public:
                         //Close and clean if Error or disconnected
                         if (ev_arr[i].events & EPOLLERR || ev_arr[i].events & EPOLLHUP )
                         {
-                            event_manager::delete_event(&ev_arr[i]);
+                            event_manager::delete_event(ev_arr[i]);
                         }
                         // New data available to read
                         else if (ev_arr[i].events & EPOLLIN)
@@ -81,7 +81,7 @@ public:
                             manager->process_data();
                             if(manager->is_eof())
                             {
-                                event_manager::delete_event(&ev_arr[i]);
+                                event_manager::delete_event(ev_arr[i]);
                             }
                         }
                     }

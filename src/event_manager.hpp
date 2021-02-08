@@ -28,8 +28,9 @@
  * @details Processor is any class with folliwing methods:
  * @code void process(std::string_view);
  * @code std::string_view get_result();
+ * @details parameter IS_TCP  will choose write(fifo, pipe) or send(socket) method
  */
-template <class processor>
+template <class Processor, bool IS_TCP>
 class event_manager_t
 {
 public:
@@ -53,13 +54,13 @@ public:
      * @details After executing this method raw data pointer in given event will be set and nullptr
      * @param epoll_event as raw poiner
      */
-    static void delete_event(epoll_event* event)
+    static void delete_event(epoll_event& event)
     {
-        if(event->data.ptr)
+        if(event.data.ptr)
         {
-            auto manager = static_cast<event_manager_t*>(event->data.ptr);
+            auto manager = static_cast<event_manager_t*>(event.data.ptr);
             delete manager;
-            event->data.ptr = nullptr;
+            event.data.ptr = nullptr;
         }
     }
 
@@ -83,7 +84,13 @@ public:
         return m_eof;
     }
 
-private:
+    /**
+     * @brief Get event_manager file descriptor
+     * @return file descriptor
+     */
+    int get_fd(){return m_fd;}
+
+protected:
     event_manager_t(int fd) :m_fd(fd){}
 
 
@@ -158,6 +165,7 @@ private:
             auto result = m_processor.get_result();
             if (result.size() && !write_data(result))
             {
+                fprintf(stderr, "%s\n", strerror(errno));
                 return false;
             }
 
@@ -179,12 +187,20 @@ private:
      */
     bool write_data(std::string_view buffer)
     {
-        return (-1 != send(m_fd, buffer.data(), buffer.size(), MSG_NOSIGNAL));
+        if constexpr (IS_TCP)
+        {
+            return (-1 != send(m_fd, buffer.data(), buffer.size(), MSG_NOSIGNAL));
+        }
+        else
+        {
+            return write(m_fd, buffer.data(), buffer.size());
+        }
+
     }
 
     /** Saved file descriptor. Used for thread pool*/
     int m_fd;
-    processor m_processor;
+    Processor m_processor;
     bool m_eof = false;
 
     /** Read buffer size*/
@@ -195,4 +211,4 @@ private:
 };
 
 /** Alias for using with hash_t as Processor*/
-using hash_ev_manager_t = event_manager_t<hash_t>;
+using hash_ev_manager_t = event_manager_t<hash_t, true>;

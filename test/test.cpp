@@ -1,5 +1,6 @@
 #include "../src/connection_pool.hpp"
 #include "../src/hash_calc.hpp"
+#include "../src/event_manager.hpp"
 
 #include <gtest/gtest.h>
 #include <fcntl.h>
@@ -14,17 +15,18 @@ class hash_calc_test : public ::testing::Test
     protected:
 };
 
-#if 0
-class pool_test: public connection_pool_t
+
+class test_event_manager_t: public event_manager_t<hash_t, false>
 {
     public:
-	static bool test_buffer_read(hash_t* hash, const char* buf, int size)
-	{
-	    return process_data(hash, buf, size, true);
-	}
+        test_event_manager_t(int fd):event_manager_t(fd){}
+        bool test_read_data  ()                       {return read_data  (      );}
+        bool test_parse_lines(std::string_view buffer){return parse_lines(buffer);}
+        bool test_write_data (std::string_view buffer){return write_data (buffer);}
 };
-#endif
-std::string etalon = "7FA8282AD93047A4D6FE6111C93B308A\n";
+
+std::string test_str = "1111111";
+std::string etalon   = "7FA8282AD93047A4D6FE6111C93B308A\n";
 
 
 TEST_F(hash_calc_test, GoogleTestTest) 
@@ -35,94 +37,102 @@ TEST_F(hash_calc_test, GoogleTestTest)
 
 TEST_F(hash_calc_test, manual_hash) 
 {
-    char str   [] = "1111111";
 
     hash_t hash;
-    hash.process({str, strlen(str)});
+    hash.process(test_str);
     auto result = hash.get_result();
 
-    ASSERT_TRUE(etalon == result) << "Hash calculation test failed";
+    ASSERT_EQ(etalon, result) << "Hash calculation test failed";
 }
-#if 0
-TEST_F(hash_calc_test, hash_one_line) 
+
+
+TEST_F(hash_calc_test, create_delete_event)
+{
+    const int test_fd = 111;
+    auto event = hash_ev_manager_t::create_event(test_fd);
+
+    ASSERT_EQ(static_cast<hash_ev_manager_t*>(event.data.ptr)->get_fd(), test_fd) << "Event cannot be created";
+    hash_ev_manager_t::delete_event(event);
+    ASSERT_FALSE(event.data.ptr) << "Event cannot be deleted";
+}
+
+
+TEST_F(hash_calc_test, hash_one_line)
 {
     int pipefd[2];
 
-    ASSERT_EQ(pipe(pipefd), 0) << "Test pipe cannot be created";
+    ASSERT_EQ(pipe(pipefd), 0) << "Test pipe cannot be created ["<<strerror(errno)<<"]";
 
-    char str   [] = "1111111\n";
-    char buf[hash_t::HAST_STR_LEN];
-    
-    hash_t hash(pipefd[1]);
+    test_event_manager_t manager(pipefd[1]);
 
-    pool_test::test_buffer_read(&hash, str, strlen(str));
+    ASSERT_TRUE(manager.test_parse_lines(test_str + "\n")) << "Writing to buffer failure";
 
-    int count = read(pipefd[0], buf, hash_t::HAST_STR_LEN);
-    
-    ASSERT_EQ(count, hash_t::HAST_STR_LEN) << "Wrong read buffer size";
+    auto buf = std::make_unique<char[]>(etalon.size());
+    int count = read(pipefd[0], buf.get(), etalon.size());
+    ASSERT_EQ(count, etalon.size()) << "Wrong read buffer size";
 
-    ASSERT_EQ(strncmp(buf, etalon, hash_t::HAST_STR_LEN), 0) << "Received hash doesn't match";
-    
+    ASSERT_EQ(strncmp(buf.get(), etalon.c_str(), etalon.size()), 0) << "Received hash doesn't match";
+
     close(pipefd[0]);
     close(pipefd[1]);
 }
 
-TEST_F(hash_calc_test, hash_multi_line) 
+
+TEST_F(hash_calc_test, hash_multi_line)
 {
     int pipefd[2];
 
-    ASSERT_EQ(pipe(pipefd), 0) << "Test pipe cannot be created";
+    ASSERT_EQ(pipe(pipefd), 0) << "Test pipe cannot be created ["<<strerror(errno)<<"]";
 
-    char str   [] = "1111111\n1111111\n1111111\n1111111\n";
-    std::string etalon_x_4;
-    
-    etalon_x_4 += etalon;
-    etalon_x_4 += etalon;
-    etalon_x_4 += etalon;
-    etalon_x_4 += etalon;
-    
-    char buf[hash_t::HAST_STR_LEN*4];
-    
-    hash_t hash(pipefd[1]);
+    auto test_newline = test_str + "\n";
+    test_newline += test_newline;
+    test_newline += test_newline;
 
-    pool_test::test_buffer_read(&hash, str, strlen(str));
+    std::string etalon_x_4 = etalon;
+    etalon_x_4 += etalon_x_4;
+    etalon_x_4 += etalon_x_4;
 
-    int count = read(pipefd[0], buf, hash_t::HAST_STR_LEN*4);
-    
-    ASSERT_EQ(count, hash_t::HAST_STR_LEN*4) << "Wrong read buffer size";
+    test_event_manager_t manager(pipefd[1]);
 
-    ASSERT_EQ(strncmp(buf, etalon_x_4.c_str(), hash_t::HAST_STR_LEN*4), 0) << "Received hash doesn't match";
-    
+    ASSERT_TRUE(manager.test_parse_lines(test_str + "\n")) << "Writing to buffer failure";
+    ASSERT_TRUE(manager.test_parse_lines(test_str + "\n")) << "Writing to buffer failure";
+    ASSERT_TRUE(manager.test_parse_lines(test_str + "\n")) << "Writing to buffer failure";
+    ASSERT_TRUE(manager.test_parse_lines(test_str + "\n")) << "Writing to buffer failure";
+
+    auto buf = std::make_unique<char[]>(etalon_x_4.size());
+    int count = read(pipefd[0], buf.get(), etalon_x_4.size());
+    ASSERT_EQ(count, etalon_x_4.size()) << "Wrong read buffer size";
+
+    ASSERT_EQ(strncmp(buf.get(), etalon_x_4.c_str(), etalon_x_4.size()), 0) << "Received hash doesn't match";
+
     close(pipefd[0]);
     close(pipefd[1]);
 }
 
-TEST_F(hash_calc_test, hash_incomplete_line) 
+
+TEST_F(hash_calc_test, hash_continues_writing)
 {
     int pipefd[2];
 
-    ASSERT_EQ(pipe(pipefd), 0) << "Test pipe cannot be created";
-
+    ASSERT_EQ(pipe(pipefd), 0) << "Test pipe cannot be created ["<<strerror(errno)<<"]";
     int retval = fcntl( pipefd[0], F_SETFL, fcntl(pipefd[0], F_GETFL) | O_NONBLOCK);
-
     ASSERT_EQ(retval, 0) << "Cannot make nonblocking pipe";
 
-    char str   [] = "1111111";
-    
-    char buf[hash_t::HAST_STR_LEN];
-    
-    hash_t hash(pipefd[1]);
+    test_event_manager_t manager(pipefd[1]);
 
-    pool_test::test_buffer_read(&hash, str, strlen(str));
+    ASSERT_TRUE(manager.test_parse_lines(test_str)) << "Writing to buffer failure";
 
-    int count = read(pipefd[0], buf, hash_t::HAST_STR_LEN);
+    auto buf = std::make_unique<char[]>(etalon.size());
+    int count = read(pipefd[0], buf.get(), etalon.size());
+    ASSERT_EQ(count, -1) << "Incompliete must return -1";
 
+    ASSERT_TRUE(manager.test_parse_lines("\n")) << "Writing to buffer failure";
+    count = read(pipefd[0], buf.get(), etalon.size());
 
-    
-    ASSERT_EQ(count, -1) << "String incomplete. Result must be EOF(-1)";
+    ASSERT_EQ(count, etalon.size()) << "Wrong read buffer size";
+    ASSERT_EQ(strncmp(buf.get(), etalon.c_str(), etalon.size()), 0) << "Received hash doesn't match";
 
     close(pipefd[0]);
     close(pipefd[1]);
 }
-#endif
 
