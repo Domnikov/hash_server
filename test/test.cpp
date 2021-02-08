@@ -13,20 +13,22 @@ class hash_calc_test : public ::testing::Test
         void TearDown() {}
 
     protected:
+        std::string test_str = "1111111";
+        std::string etalon   = "7FA8282AD93047A4D6FE6111C93B308A\n";
+
+        class test_event_manager_t: public event_manager_t<hash_t, false>
+        {
+            public:
+                test_event_manager_t(int fd):event_manager_t(fd){}
+                bool test_read_data  ()                       {return read_data  (      );}
+                bool test_parse_lines(std::string_view buffer){return parse_lines(buffer);}
+                bool test_write_data (std::string_view buffer){return write_data (buffer);}
+        };
+
 };
 
 
-class test_event_manager_t: public event_manager_t<hash_t, false>
-{
-    public:
-        test_event_manager_t(int fd):event_manager_t(fd){}
-        bool test_read_data  ()                       {return read_data  (      );}
-        bool test_parse_lines(std::string_view buffer){return parse_lines(buffer);}
-        bool test_write_data (std::string_view buffer){return write_data (buffer);}
-};
 
-std::string test_str = "1111111";
-std::string etalon   = "7FA8282AD93047A4D6FE6111C93B308A\n";
 
 
 TEST_F(hash_calc_test, GoogleTestTest) 
@@ -35,7 +37,7 @@ TEST_F(hash_calc_test, GoogleTestTest)
 }
 
 
-TEST_F(hash_calc_test, manual_hash) 
+TEST_F(hash_calc_test, hash_manual)
 {
 
     hash_t hash;
@@ -46,7 +48,7 @@ TEST_F(hash_calc_test, manual_hash)
 }
 
 
-TEST_F(hash_calc_test, create_delete_event)
+TEST_F(hash_calc_test, event_create_delete)
 {
     const int test_fd = 111;
     auto event = hash_ev_manager_t::create_event(test_fd);
@@ -57,7 +59,7 @@ TEST_F(hash_calc_test, create_delete_event)
 }
 
 
-TEST_F(hash_calc_test, hash_one_line)
+TEST_F(hash_calc_test, event_read_one_line)
 {
     int pipefd[2];
 
@@ -78,7 +80,7 @@ TEST_F(hash_calc_test, hash_one_line)
 }
 
 
-TEST_F(hash_calc_test, hash_multi_line)
+TEST_F(hash_calc_test, event_read_multi_line)
 {
     int pipefd[2];
 
@@ -110,7 +112,7 @@ TEST_F(hash_calc_test, hash_multi_line)
 }
 
 
-TEST_F(hash_calc_test, hash_continues_writing)
+TEST_F(hash_calc_test, event_continues_reading)
 {
     int pipefd[2];
 
@@ -134,5 +136,14 @@ TEST_F(hash_calc_test, hash_continues_writing)
 
     close(pipefd[0]);
     close(pipefd[1]);
+}
+
+
+TEST_F(hash_calc_test, connection_pool_test)
+{
+    connection_pool_t<hash_ev_manager_t> pool(2);
+    auto fail_result = pool.add_connection(10);
+
+    ASSERT_EQ(fail_result, 0) << "Add new connection to connection_pool failed";
 }
 
