@@ -21,6 +21,8 @@
 #include <cstring>
 #include <cerrno>
 
+namespace net
+{
 
 /**
  * @brief The class proides interface woth with TCP sockets in blocking mode.
@@ -152,3 +154,6 @@ private:
     /** Opened socket file descriptor */
     int m_file_desc = -1;
 };
+
+
+} // namespace net

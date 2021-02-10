@@ -18,7 +18,8 @@
 #include <cstring>
 #include <string_view>
 
-
+namespace net
+{
 
 /**
 * @brief connection_pool_t class
@@ -169,3 +170,5 @@ private:
     /** Run flag. setup to true when object created and to false when object is destroying*/
     std::atomic_bool m_run;
 };
+
+} // namespace net

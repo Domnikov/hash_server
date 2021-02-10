@@ -4,19 +4,22 @@
 #include <string.h>
 #include <cstdio>
 
-void (*system_handler)(int);
-hash_server_t* server_ptr = nullptr;
-
-void sighandler(int sig)
+namespace
 {
-    fprintf(stdout, "TCP server will be shutted down with signal %d: %s.\n", sig, strsignal(sig));
-    if(server_ptr)
-    {
-        server_ptr->kill();
-    }
+    void (*system_handler)(int);
+    net::hash_server_t* server_ptr = nullptr;
 
-    // if not succeed next time kill by system
-    signal (SIGINT, system_handler);
+    void sighandler(int sig)
+    {
+        fprintf(stdout, "TCP server will be shutted down with signal %d: %s.\n", sig, strsignal(sig));
+        if(server_ptr)
+        {
+            server_ptr->kill();
+        }
+
+        // if not succeed next time kill by system
+        signal (SIGINT, system_handler);
+    }
 }
 
 
@@ -48,7 +51,7 @@ int main(int argc, char **argv)
     // Start server
     try
     {
-        hash_server_t server(thread_num);
+        net::hash_server_t server(thread_num);
         server_ptr = &server;
         server.run(port);
         server_ptr = nullptr;

@@ -19,6 +19,8 @@
 #include <string_view>
 
 
+namespace net
+{
 
 /**
  * @brief Event manager provides interface for single connection
@@ -211,4 +213,7 @@ protected:
 };
 
 /** Alias for using with hash_t as Processor*/
-using hash_ev_manager_t = event_manager_t<hash_t, true>;
+using hash_ev_manager_t = event_manager_t<processors::hash_t, true>;
+
+} // namespace net
+

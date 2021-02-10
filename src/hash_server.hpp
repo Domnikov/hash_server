@@ -21,6 +21,8 @@
 #include <cstring>
 #include <cerrno>
 
+namespace net
+{
 
 /**
  * @brief Implementation of server.
@@ -79,3 +81,5 @@ private:
 
 /** Alias for hash_server_t*/
 using hash_server_t = server_t<tcp_soct_t, hash_ev_manager_t>;
+
+} // namespace net

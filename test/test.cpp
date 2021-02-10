@@ -13,7 +13,7 @@ class hash_calc_test : public ::testing::Test
         void TearDown() {}
 
     protected:
-        class test_event_manager_t: public event_manager_t<hash_t, false>
+        class test_event_manager_t: public net::event_manager_t<net::processors::hash_t, false>
         {
             public:
                 test_event_manager_t(int fd):event_manager_t(fd){}
@@ -68,7 +68,7 @@ TEST_F(hash_calc_test, GoogleTestTest)
 TEST_F(hash_calc_test, hash_manual)
 {
 
-    hash_t hash;
+    net::processors::hash_t hash;
     hash.process(test_str);
     auto result = hash.get_result();
 
@@ -79,10 +79,10 @@ TEST_F(hash_calc_test, hash_manual)
 TEST_F(hash_calc_test, event_create_delete)
 {
     const int test_fd = 111;
-    auto event = hash_ev_manager_t::create_event(test_fd);
+    auto event = net::hash_ev_manager_t::create_event(test_fd);
 
-    ASSERT_EQ(static_cast<hash_ev_manager_t*>(event.data.ptr)->get_fd(), test_fd) << "Event cannot be created";
-    hash_ev_manager_t::delete_event(event);
+    ASSERT_EQ(static_cast<net::hash_ev_manager_t*>(event.data.ptr)->get_fd(), test_fd) << "Event cannot be created";
+    net::hash_ev_manager_t::delete_event(event);
     ASSERT_FALSE(event.data.ptr) << "Event cannot be deleted";
 }
 
@@ -169,16 +169,22 @@ TEST_F(hash_calc_test, event_continues_reading)
 
 TEST_F(hash_calc_test, connection_pool_test)
 {
-    connection_pool_t<hash_ev_manager_t> pool(2);
-    auto fail_result = pool.add_connection(10);
+    int pipefd[2];
+
+    ASSERT_EQ(pipe(pipefd), 0) << "Test pipe cannot be created ["<<strerror(errno)<<"]";
+
+    net::connection_pool_t<net::hash_ev_manager_t> pool(2);
+    auto fail_result = pool.add_connection(pipefd[0]);
 
     ASSERT_EQ(fail_result, 0) << "Add new connection to connection_pool failed";
+    close(pipefd[0]);
+    close(pipefd[1]);
 }
 
 
 TEST_F(hash_calc_test, server_test)
 {
-    server_t<fake_socket_t, hash_ev_manager_t> server(1);
+    net::server_t<fake_socket_t, net::hash_ev_manager_t> server(1);
 
     ASSERT_EQ(0, 0) << "Server Created";
 

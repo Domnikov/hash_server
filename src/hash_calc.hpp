@@ -11,6 +11,10 @@
 
 #include <openssl/evp.h>
 
+namespace net
+{
+namespace processors
+{
 
 /**
 * @brief hash_t class
@@ -97,3 +101,7 @@ private:
     /** Output buffer for storing hash*/
     char out_buf[HAST_STR_LEN];
 };
+
+
+} // namespace processors
+} // namespace net
