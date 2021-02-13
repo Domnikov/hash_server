@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include "fd_helper.hpp"
 #include "hash_calc.hpp"
 
 #include <sys/epoll.h>
@@ -90,22 +91,11 @@ public:
      * @brief Get event_manager file descriptor
      * @return file descriptor
      */
-    int get_fd(){return m_fd;}
+    int get_fd(){return m_file_desc.get();}
 
 protected:
-    event_manager_t(int fd) :m_fd(fd){}
-
-
-    /**
-     * @brief Class deleter. Before delete object it close file descriptor
-     */
-    ~event_manager_t()
-    {
-        if(m_fd != -1)
-        {
-            close(m_fd);
-        }
-    }
+    event_manager_t(int fd) :m_file_desc(fd){}
+    virtual ~event_manager_t() = default;
 
 
     // rule of five - delete all copy/move methods
@@ -128,7 +118,7 @@ protected:
     bool read_data()
     {
 
-        auto count = read(m_fd, rd_buf, READ_BUF_SIZE);
+        auto count = read(m_file_desc.get(), rd_buf, READ_BUF_SIZE);
 
         if (-1 == count) // All data was read
         {
@@ -191,17 +181,17 @@ protected:
     {
         if constexpr (IS_TCP)
         {
-            return (-1 != send(m_fd, buffer.data(), buffer.size(), MSG_NOSIGNAL));
+            return (-1 != send(m_file_desc.get(), buffer.data(), buffer.size(), MSG_NOSIGNAL));
         }
         else
         {
-            return write(m_fd, buffer.data(), buffer.size());
+            return write(m_file_desc.get(), buffer.data(), buffer.size());
         }
 
     }
 
-    /** Saved file descriptor. Used for thread pool*/
-    int m_fd;
+    /** Socket connection file descriptor wrapped with std::unique_ptr with custom deleter*/
+    std::unique_ptr<fd_helper_t, fd_deleter_t> m_file_desc;
     Processor m_processor;
     bool m_eof = false;
 

@@ -135,7 +135,7 @@ public:
     * @param[in] New file descriptor to open
     * @return Returns 0 in case of success, S-1 in case of error
     */
-    int add_connection(int fd)
+    int add_connection(int fd) const
     {
         // Get next thread id
         static int counter = 0;

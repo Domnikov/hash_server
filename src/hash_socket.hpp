@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include "fd_helper.hpp"
 #include "hash_calc.hpp"
 #include "connection_pool.hpp"
 
@@ -29,22 +30,10 @@ namespace net
  * @details Methods create for creating and start listening, wait_new - waiting new connection and
  * @details kill for stopping server
  */
-class tcp_soct_t
+class tcp_soct_t final
 {
 public:
     tcp_soct_t() = default;
-
-    /**
-      * @brief Object destructor. Before destroy object it will close descriptor
-      */
-    ~tcp_soct_t()
-    {
-        if (-1 != m_file_desc)
-        {
-            close(m_file_desc);
-            m_file_desc = -1;
-        }
-    }
 
     // rule of five - delete all copy/move methods
     tcp_soct_t(const tcp_soct_t& ) = delete;
@@ -59,11 +48,10 @@ public:
      */
     void kill()
     {
-        if (-1 == shutdown(m_file_desc, SHUT_RDWR))
+        if (-1 == shutdown(m_file_desc.get(), SHUT_RDWR))
         {
             fprintf(stderr, "Server shutdown failure!: %s\n", strerror(errno));
         }
-        m_file_desc = -1;
     }
 
 
@@ -76,15 +64,15 @@ public:
     void create(uint16_t port)
     {
         // Creating socket descriptor
-        m_file_desc = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
-        if (-1 == m_file_desc)
+        m_file_desc.reset(socket( AF_INET, SOCK_STREAM, IPPROTO_TCP ));
+        if (m_file_desc == nullptr)
         {
             throw std::runtime_error("Socket cannot be created!");
         }
 
         // Setup socket option REUSE ADDRESS
         int enable = 1;
-        if (-1 == setsockopt( m_file_desc, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable) ))
+        if (-1 == setsockopt(m_file_desc.get(), SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable) ))
         {
             fprintf(stderr, "Reuse address option cannot be used\n");
         }
@@ -95,19 +83,15 @@ public:
         addr.sin_family = AF_INET;
         addr.sin_port = htons (port);
         addr.sin_addr.s_addr = INADDR_ANY ;
-        if (-1 == bind( m_file_desc, (sockaddr*) &addr, sizeof(addr) ))
+        if (-1 == bind( m_file_desc.get(), (sockaddr*) &addr, sizeof(addr) ))
         {
-            close(m_file_desc);
-            m_file_desc = -1;
             throw std::runtime_error(std::string("Socket binding error[") + strerror(errno) + "]");
         }
 
 
         // Start listening socket
-        if (-1 == listen( m_file_desc, max_events))
+        if (-1 == listen( m_file_desc.get(), max_events))
         {
-            close(m_file_desc);
-            m_file_desc = -1;
             throw std::runtime_error(std::string("Socket start listen error[") + strerror(errno) + "]");
         }
     }
@@ -122,7 +106,7 @@ public:
      */
     bool wait_new(int& file_descr)
     {
-        while ( (file_descr = accept( m_file_desc, NULL, 0)) < 0)
+        while ( (file_descr = accept (m_file_desc.get(), NULL, 0)) < 0)
         {
             if (errno == EWOULDBLOCK  || errno == EAGAIN      || errno == ENONET     ||
                 errno == EPROTO       || errno == ENOPROTOOPT || errno == EOPNOTSUPP ||
@@ -138,8 +122,6 @@ public:
             }
             else
             {
-                close(m_file_desc);
-                m_file_desc = -1;
                 throw std::runtime_error(std::string("Socket Listening error[") + strerror(errno) + "]");
             }
         }
@@ -151,8 +133,8 @@ private:
     /** Maximum connections queue size */
     constexpr static int max_events = 32;
 
-    /** Opened socket file descriptor */
-    int m_file_desc = -1;
+    /** Opened socket file descriptor wrapped with std::unique_ptr with custom deleter*/
+    std::unique_ptr<fd_helper_t, fd_deleter_t> m_file_desc;
 };
 
 
