@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "fd_helper.hpp"
+#include "fd_holder.hpp"
 #include "hash_calc.hpp"
 #include "connection_pool.hpp"
 
@@ -134,7 +134,7 @@ private:
     constexpr static int max_events = 32;
 
     /** Opened socket file descriptor wrapped with std::unique_ptr with custom deleter*/
-    std::unique_ptr<fd_helper_t, fd_deleter_t> m_file_desc;
+    std::unique_ptr<fd_holder_t, fd_deleter_t> m_file_desc;
 };
 
 

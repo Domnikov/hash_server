@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include "fd_helper.hpp"
+#include "fd_holder.hpp"
 #include "hash_calc.hpp"
 
 #include <sys/epoll.h>
@@ -191,7 +191,7 @@ protected:
     }
 
     /** Socket connection file descriptor wrapped with std::unique_ptr with custom deleter*/
-    std::unique_ptr<fd_helper_t, fd_deleter_t> m_file_desc;
+    std::unique_ptr<fd_holder_t, fd_deleter_t> m_file_desc;
     Processor m_processor;
     bool m_eof = false;
 

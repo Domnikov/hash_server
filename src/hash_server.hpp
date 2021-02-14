@@ -67,7 +67,6 @@ public:
     void kill()
     {
         m_conct.kill();
-        m_pool.stop();
     }
 
 private:

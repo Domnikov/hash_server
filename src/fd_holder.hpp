@@ -11,12 +11,12 @@
 #include <unistd.h>
 #include <cstdio>
 
-struct fd_helper_t
+struct fd_holder_t
 {
     public:
-        fd_helper_t(int fd) : m_fd(fd) {}
-        fd_helper_t(std::nullptr_t) : m_fd(-1) {}
-        fd_helper_t() : fd_helper_t(nullptr) {}
+        fd_holder_t(int fd) : m_fd(fd) {}
+        fd_holder_t(std::nullptr_t) : m_fd(-1) {}
+        fd_holder_t() : fd_holder_t(nullptr) {}
 
         operator int() const {return m_fd;}
 
@@ -28,11 +28,10 @@ struct fd_helper_t
 
 struct fd_deleter_t
 {
-    using pointer = fd_helper_t; // Internal type is a pointer
+    using pointer = fd_holder_t;
 
     void operator()( int fd )
     {
-        fprintf(stderr, "deleter:%d\n", fd);
         close(fd);
     }
 };
